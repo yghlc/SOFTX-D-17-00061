@@ -1,0 +1,6 @@
+.idea
+*.so
+*.pyc
+build
+TomoWarp2_v2.1.320/pixel_search/c_code/pixel_search.py
+TomoWarp2_v2.1.320/pixel_search/c_code/pixel_search_wrap.c

@@ -28,6 +28,7 @@
 
 import logging
 from print_variable import pv
+import cv2
 
 def read_raw_3D( image_data_format, image_size, base_dir, raw_base_name, extension, slices_range, crop ):
     """
@@ -193,7 +194,12 @@ def read_tiff_slices( image_data_format, imageDimensions, base_dir, tiff_base_na
                 filename = "%s/%s%0*i%s"%( base_dir, tiff_base_name, digits, sliceNumber + slices_range[0], extension ) 
               # 2015-03-31 EA: Adding a transpose here: -------------------------------------------------------------------------------------| Instead of reshape with PIL...
               #                                                                                                                              V
-              currentImage = tifffile.imread( filename )
+              # currentImage = tifffile.imread( filename )
+              currentImage = cv2.imread(filename, cv2.IMREAD_UNCHANGED)
+              # diff = image_data - currentImage
+              print("Reading %d th slice: %s"%(sliceNumber,filename))
+              # print("diff between cv2 and tifffile: %lf"%diff.sum())
+              # print(image_data.shape,currentImage.shape )
 
               if crop == None:
                   outputVolume[ sliceNumber ] = currentImage.reshape( currentImage.size[1], currentImage.size[0] )
@@ -207,7 +213,9 @@ def read_tiff_slices( image_data_format, imageDimensions, base_dir, tiff_base_na
         
     try: logging.log.debug( "read_tiff_slices(): Volume mean value = %s"%(outputVolume.mean()) )
     except: print "read_tiff_slices(): Volume mean value = %s"%(outputVolume.mean()) 
-    
+
+    print("outputVolume size:", outputVolume.shape)
+
     return outputVolume
   
   
