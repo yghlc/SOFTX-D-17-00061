@@ -197,7 +197,7 @@ def read_tiff_slices( image_data_format, imageDimensions, base_dir, tiff_base_na
               # currentImage = tifffile.imread( filename )
               currentImage = cv2.imread(filename, cv2.IMREAD_UNCHANGED)
               # diff = image_data - currentImage
-              print("Reading %d th slice: %s"%(sliceNumber,filename))
+              # print("Reading %d th slice: %s"%(sliceNumber,filename))
               # print("diff between cv2 and tifffile: %lf"%diff.sum())
               # print(image_data.shape,currentImage.shape )
 
