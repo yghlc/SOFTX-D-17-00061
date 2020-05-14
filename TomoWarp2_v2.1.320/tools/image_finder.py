@@ -52,6 +52,8 @@ from print_variable import pv
 
 def image_finder( directory="./", nameFilter="", extension="", digits=None ):
 
+    if os.path.isdir(directory) is False:
+        raise Exception("\timage_finder(): No such directory %s" % (directory))
     # Get a sorted list of files in the folder that match the name filter and the extension, if given.
     filePattern = re.compile( r"(.*)%s(.*)%s"%( nameFilter, extension ) )
     fileList = sorted( [f for f in os.listdir( directory ) if filePattern.match(f)] )
