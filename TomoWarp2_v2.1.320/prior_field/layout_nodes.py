@@ -40,6 +40,7 @@ import numpy
 
 def layout_nodes( node_spacing, corners ):
 
+        print("start layout_nodes")
         # Calculate positions of nodes in H
         nodes_h = range(corners[0][0]+int(corners[1][0]%node_spacing[0])/2,corners[1][0]+1,node_spacing[0])
         # Calculate positions of nodes in W
@@ -58,5 +59,5 @@ def layout_nodes( node_spacing, corners ):
             for d in range(len(nodes_d)):
               prior[count,1:4] = ( nodes_h[h], nodes_w[w], nodes_d[d] )
               count += 1
-
+        print("end layout_nodes")
         return prior, nodes_h, nodes_w, nodes_d
