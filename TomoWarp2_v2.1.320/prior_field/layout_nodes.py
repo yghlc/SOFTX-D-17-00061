@@ -48,6 +48,7 @@ def layout_nodes( node_spacing, corners ):
         # Calculate positions of nodes in D
         nodes_d = range(corners[0][2]+int(corners[1][2]%node_spacing[2])/2,corners[1][2]+1,node_spacing[2])
 
+        print("nodes_h, nodes_w,nodes_d:",nodes_h, nodes_w,nodes_d)
         # With our x,y,z displacement iterate and build the matrix.
         prior = numpy.zeros((len(nodes_h) * len(nodes_w) * len(nodes_d), 12 ), dtype='<f4')
         # Add node number in first column of prior
