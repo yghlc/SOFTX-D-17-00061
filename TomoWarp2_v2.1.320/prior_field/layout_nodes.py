@@ -49,7 +49,7 @@ def layout_nodes( node_spacing, corners ):
         nodes_d = range(corners[0][2]+int(corners[1][2]%node_spacing[2])/2,corners[1][2]+1,node_spacing[2])
 
         # With our x,y,z displacement iterate and build the matrix.
-        prior = numpy.zeros((len(nodes_h) * len(nodes_w) * len(nodes_d), 12 ), dtype='<f8')
+        prior = numpy.zeros((len(nodes_h) * len(nodes_w) * len(nodes_d), 12 ), dtype='<f4')
         # Add node number in first column of prior
         for i in range( prior.shape[0] ): prior[i,0]=i
 
