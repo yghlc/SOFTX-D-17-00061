@@ -50,6 +50,8 @@ from tools.input_parameters_update import input_parameters_update
 from tools.print_help import help_continuum_slices, \
     help_continuum_slices_inputfile
 
+import psutil
+process = psutil.Process(os.getpid())
 
 def tomowarp_runfile( data ):
     # Get the starting time for the calculation.
@@ -99,6 +101,7 @@ def tomowarp_runfile( data ):
     # -------------------------------------
     # ===============================================================
 
+    print ("finished loading parameters, memory usage in bytes" ,process.memory_info().rss)
 
     if not (data.usePriorCoordinates) or data.prior_file == None:
         # Generating a grid of points if not given
@@ -112,7 +115,9 @@ def tomowarp_runfile( data ):
         except: print  "* Identified "+str(int(kinematics[-1,0]+1))+" Node(s)\n" \
                           "   * Node positions Z:"+str( nodes_z )+"\n"          \
                           "   * Node positions Y:"+str( nodes_y )+"\n"          \
-                          "   * Node positions X:"+str( nodes_x )+"\n" 
+                          "   * Node positions X:"+str( nodes_x )+"\n"
+
+        print ("finished creating nodesToProcess, memory usage in bytes", process.memory_info().rss)
 
     if data.prior_file != None:
 
