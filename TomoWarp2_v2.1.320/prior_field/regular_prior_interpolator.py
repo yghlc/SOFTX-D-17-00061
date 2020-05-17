@@ -104,7 +104,7 @@ def regular_prior_interpolator( old_prior, new_prior, filter_size=None ):
   # Normalise coordinates of new prior nodes positions
   #   (subtract position of old top corner and divide by old node spacing), to get into the SHAPE => SIZE
   #   of the old prior for interpolation.
-  new_prior_normalised = numpy.zeros( (new_prior.shape[0], 3) )
+  new_prior_normalised = numpy.zeros( (new_prior.shape[0], 3), dtype=numpy.float32)
   new_prior_normalised[ :, 0 ] = ( new_prior[ :, 1 ] - old_nodes_z[0] ) / old_z_spacing
   new_prior_normalised[ :, 1 ] = ( new_prior[ :, 2 ] - old_nodes_y[0] ) / old_y_spacing
   new_prior_normalised[ :, 2 ] = ( new_prior[ :, 3 ] - old_nodes_x[0] ) / old_x_spacing
