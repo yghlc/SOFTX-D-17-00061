@@ -88,7 +88,7 @@ def DIC_setup( kinematics, data, q_data_requests, workerQueues ):
     # 2014-10-04 EA and ET: updating extents matrix to a 4D array, with { node number }, { im_number 0,1 }, { top, bottom }, { z, y, x }
     extents = numpy.zeros( ( kinematics.shape[0], 2, 2, 3 ), dtype=numpy.int16 )    # change int32 to int16, to save memory (the extent would not be too large)
 
-    print ("finished creating extents array for all nodes, memory usage in bytes", process.memory_info().rss)
+    print ("finished creating extents array for all nodes, memory usage in bytes, GB, process id" ,process.memory_info().rss,process.memory_info().rss/(1024*1024*1024.0), process.pid)
 
     #                     position            correlation_window            top extent of search window     prior displacement
     # --- Handling im1_lo

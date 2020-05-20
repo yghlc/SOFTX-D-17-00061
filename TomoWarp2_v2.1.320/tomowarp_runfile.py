@@ -103,7 +103,7 @@ def tomowarp_runfile( data ):
     # -------------------------------------
     # ===============================================================
 
-    print ("finished loading parameters, memory usage in bytes" ,process.memory_info().rss)
+    print ("finished loading parameters, memory usage in bytes, GB, process id" ,process.memory_info().rss,process.memory_info().rss/(1024*1024*1024.0), process.pid)
     gc.collect()
 
     if not (data.usePriorCoordinates) or data.prior_file == None:
@@ -120,7 +120,7 @@ def tomowarp_runfile( data ):
                           "   * Node positions Y:"+str( nodes_y )+"\n"          \
                           "   * Node positions X:"+str( nodes_x )+"\n"
 
-        print ("finished creating nodesToProcess, memory usage in bytes", process.memory_info().rss)
+        print ("finished creating nodesToProcess, memory usage in bytes, GB, process id" ,process.memory_info().rss,process.memory_info().rss/(1024*1024*1024.0), process.pid)
         gc.collect()
 
     if data.prior_file != None:
@@ -137,7 +137,7 @@ def tomowarp_runfile( data ):
         prior = prior[numpy.argsort(prior, axis=0, kind='mergesort')[:,2]]
         prior = prior[numpy.argsort(prior, axis=0, kind='mergesort')[:,1]]
 
-        print ("finished reading prior_file (ReadTSV), memory usage in bytes", process.memory_info().rss)
+        print ("finished reading prior_file (ReadTSV), memory usage in bytes, GB, process id" ,process.memory_info().rss,process.memory_info().rss/(1024*1024*1024.0), process.pid)
         gc.collect()
 
         if data.usePriorCoordinates:
@@ -162,7 +162,7 @@ def tomowarp_runfile( data ):
             imsave( data.DIR_out + "/%s-prior-y-field-%04ix%04ix%04i.tif"%(  data.output_name, len(nodes_x), len(nodes_y), len(nodes_z)),     kinematics[ :, 5 ].reshape( ( len(nodes_z), len(nodes_y), len(nodes_x) ) ).astype( '<f4' ) )
             imsave( data.DIR_out + "/%s-prior-x-field-%04ix%04ix%04i.tif"%(  data.output_name, len(nodes_x), len(nodes_y), len(nodes_z)),     kinematics[ :, 6 ].reshape( ( len(nodes_z), len(nodes_y), len(nodes_x) ) ).astype( '<f4' ) )
 
-            print ("finished regular_prior_interpolator, memory usage in bytes", process.memory_info().rss)
+            print ("finished regular_prior_interpolator, memory usage in bytes, GB, process id" ,process.memory_info().rss,process.memory_info().rss/(1024*1024*1024.0), process.pid)
             gc.collect()
 
     try: logging.log.info( "Nodes To Process = %i"%(nodesToProcess.shape[0]) )
