@@ -96,7 +96,7 @@ import tqdm
 
 def read_sub_volume(extent, im1, im2, zExtents_im1_current, zExtents_im2_current, data):
 
-    nodeExtent = extent
+    nodeExtent = extent.copy()
 
     # Node extents are in absolute coordinates:
     #   First: Add crop in horizontal directions, -- the loaded ROI is still in absolute image coordinates
