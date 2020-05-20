@@ -37,6 +37,7 @@ import logging
 from tools.tifffile import imsave
 
 from DIC_setup import DIC_setup
+from DIC_parallel import DIC_parallel
 from data_delivery_worker import data_delivery_worker
 from prior_field.layout_nodes import layout_nodes
 from prior_field.regular_prior_interpolator import regular_prior_interpolator
@@ -172,7 +173,8 @@ def tomowarp_runfile( data ):
 
     if nodesToProcess.shape[0] != 0:
       try:
-        kinematics[ nodesToProcess,: ] = DIC_setup( kinematics[ nodesToProcess,: ], data, q_data_requests , workerQueues )
+        # kinematics[ nodesToProcess,: ] = DIC_setup( kinematics[ nodesToProcess,: ], data, q_data_requests , workerQueues )
+        kinematics[ nodesToProcess,: ] = DIC_parallel( kinematics[ nodesToProcess,: ], data )
       except Exception as exc:
         raise Exception(exc)
 
