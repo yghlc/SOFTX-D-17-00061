@@ -85,7 +85,7 @@ def data_delivery_worker( pipe_data_requests_out, workerQueues ):
 
         # print ("For Debug, In data_delivery_worker worker, memory usage in bytes, GB, process id",
         #        process.memory_info().rss, process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid)
-        gc.collect()
+        # gc.collect()
 
         # Get a message from the pipe_data_requests
         message = pipe_data_requests_out.get()
@@ -131,6 +131,9 @@ def data_delivery_worker( pipe_data_requests_out, workerQueues ):
             # Second, add z_extent for this row of nodes.
             nodeExtent[0,:,0]       = nodeExtent[0,:,0]       - zExtents_im1_current[0]
             nodeExtent[1,:,0]       = nodeExtent[1,:,0]       - zExtents_im2_current[0]
+
+            # # for test
+            # print("DataRequest: %d, %s"%(workerNumber,(str(nodeExtent))))
 
             # 2015-11-18 EA: There is a strange error of im2.shape failing because im2 is a list...
             #   putting in a light check to avoid this...
