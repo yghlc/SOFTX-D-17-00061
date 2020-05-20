@@ -52,6 +52,7 @@ import psutil, os
 process = psutil.Process(os.getpid())
 import gc
 
+# @profile
 def DIC_worker( workerNumber, q_nodes, q_results, q_data_requests, q_data, data ):
 
     time.sleep( 1 )
@@ -253,6 +254,6 @@ def DIC_worker( workerNumber, q_nodes, q_results, q_data_requests, q_data, data 
             # In any case send something on the q_results
             q_results.put( [ nodeNumber, nodeDispSubpixel + nodeDisplacement, nodeRotSubpixel, cc, error ]  )
 
-            print ("For Debug, In DIC worker, memory usage in bytes, GB, process id",
-                   process.memory_info().rss, process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid)
+            # print ("For Debug, In DIC worker, memory usage in bytes, GB, process id",
+            #        process.memory_info().rss, process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid)
             gc.collect()

@@ -55,6 +55,8 @@ process = psutil.Process(os.getpid())
 
 import gc
 
+# add @profile for memory usage using mprof
+# @profile
 def tomowarp_runfile( data ):
     # Get the starting time for the calculation.
     data.timeStart = time.time()

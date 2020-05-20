@@ -78,6 +78,7 @@ process = psutil.Process(os.getpid())
 # ===========================
 # === Program Starts Here ===
 # ===========================
+# @profile
 def DIC_setup( kinematics, data, q_data_requests, workerQueues ):
 
     # Wake up the data_delivery_worker with a new "data" array.
