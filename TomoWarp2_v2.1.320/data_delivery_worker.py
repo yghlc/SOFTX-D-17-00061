@@ -53,6 +53,9 @@ import sys
 import logging
 from tools.load_slices import load_slices
 
+import psutil, os
+process = psutil.Process(os.getpid())
+import gc
 
 # to unpickle our pipes to the DIC workers, otherwise they can't be send by pipe, see
 #   http://stackoverflow.com/questions/1446004/python-2-6-send-connection-object-over-queue-pipe-etc
@@ -78,6 +81,10 @@ def data_delivery_worker( pipe_data_requests_out, workerQueues ):
     #   Message C: data request
     #   Message D: STOP and close data_delivery_worker at the end of the main
     while True:
+
+        print ("For Debug, In data_delivery_worker worker, memory usage in bytes, GB, process id",
+               process.memory_info().rss, process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid)
+        gc.collect()
 
         # Get a message from the pipe_data_requests
         message = pipe_data_requests_out.get()
