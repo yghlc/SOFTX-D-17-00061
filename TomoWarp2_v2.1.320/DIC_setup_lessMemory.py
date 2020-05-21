@@ -81,6 +81,38 @@ from psutil import virtual_memory
 process = psutil.Process(os.getpid())
 
 import gc
+
+def extent_oneNode(nodeNumber,kinematics, data):
+
+    # --- Define the extent of data we need to ask for ---
+    # ----- i.e., generate extents matrix ----------------
+    # 2014-10-04 EA and ET: updating extents matrix to a 4D array, with { node number }, { im_number 0,1 }, { top, bottom }, { z, y, x }
+    # extents = numpy.zeros( ( kinematics.shape[0], 2, 2, 3 ), dtype=numpy.int )    # change int32 to int16, to save memory (the extent would not be too large)
+
+    extents = numpy.zeros((2, 2, 3), dtype=numpy.int)
+
+    #                     position            correlation_window            top extent of search window     prior displacement
+    # --- Handling im1_lo
+    extents[0,0] = kinematics[nodeNumber,1:4] - data.correlation_window
+
+    # --- Handling im1_hi
+    extents[0,1] = kinematics[nodeNumber,1:4] + data.correlation_window
+
+    # --- Handling im2_lo
+    extents[1,0] = kinematics[nodeNumber,1:4] - data.correlation_window + numpy.array( data.search_window )[nodeNumber,0] +  kinematics[nodeNumber,4:7]
+
+    # --- Handling im2_hi
+    extents[1,1] = kinematics[1:4] + data.correlation_window + numpy.array( data.search_window )[nodeNumber,1] +  kinematics[nodeNumber,4:7]
+
+    # ----------------------------------------------------
+
+    # Extents can not exceed the image_slices_extents
+    extents[:,0,0] = numpy.maximum( extents[:,0,0], numpy.ones_like(extents[:,0,0]) * data.image_slices_extent[:,0] )
+
+    extents[:,1,0] = numpy.minimum( extents[:,1,0], numpy.ones_like(extents[:,1,0]) * data.image_slices_extent[:,1] )
+
+    return extents
+
 # ===========================
 # === Program Starts Here ===
 # ===========================
@@ -91,33 +123,7 @@ def DIC_setup_lessMemory( kinematics, data, q_data_requests, workerQueues ):
     q_data_requests.put( [ "NewData", data ] )
     logging.log.info("The number of nodes for this subset: %d"%kinematics.shape[0])
 
-    # --- Define the extent of data we need to ask for ---
-    # ----- i.e., generate extents matrix ----------------
-    # 2014-10-04 EA and ET: updating extents matrix to a 4D array, with { node number }, { im_number 0,1 }, { top, bottom }, { z, y, x }
-    extents = numpy.zeros( ( kinematics.shape[0], 2, 2, 3 ), dtype=numpy.int )    # change int32 to int16, to save memory (the extent would not be too large)
 
-    logging.log.info ("finished creating extents array for all nodes, memory usage in bytes, GB, process id" ,process.memory_info().rss,process.memory_info().rss/(1024*1024*1024.0), process.pid)
-
-    #                     position            correlation_window            top extent of search window     prior displacement
-    # --- Handling im1_lo
-    extents[:,0,0] = kinematics[:,1:4] - data.correlation_window
-    gc.collect()
-    # --- Handling im1_hi
-    extents[:,0,1] = kinematics[:,1:4] + data.correlation_window
-    gc.collect()
-    # --- Handling im2_lo
-    extents[:,1,0] = kinematics[:,1:4] - data.correlation_window + numpy.array( data.search_window )[:,0] +  kinematics[:,4:7]
-    gc.collect()
-    # --- Handling im2_hi
-    extents[:,1,1] = kinematics[:,1:4] + data.correlation_window + numpy.array( data.search_window )[:,1] +  kinematics[:,4:7]
-    gc.collect()
-    # ----------------------------------------------------
-
-    # Extents can not exceed the image_slices_extents
-    extents[:,:,0,0] = numpy.maximum( extents[:,:,0,0], numpy.ones_like(extents[:,:,0,0]) * data.image_slices_extent[:,0] )
-    gc.collect()
-    extents[:,:,1,0] = numpy.minimum( extents[:,:,1,0], numpy.ones_like(extents[:,:,1,0]) * data.image_slices_extent[:,1] )
-    gc.collect()
 
     logging.log.info ("finished extents calculation, memory usage in bytes:%d, GB:%lf, process id:%d"%(process.memory_info().rss,
     process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid))
@@ -141,32 +147,46 @@ def DIC_setup_lessMemory( kinematics, data, q_data_requests, workerQueues ):
     logging.log.info ("finished Launching DIC worker, memory usage in bytes: %d, GB:%lf, process id:%d"% (process.memory_info().rss,
     process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid))
 
+    # # Calculate the highest slice we need
+    # currentTopSlice_image1 = min(extents[:,0,0,0])
+    # currentTopSlice_image2 = max( min( min(extents[:,1,0,0] ) - int( data.subpixel_mode[2]*max(data.correlation_window)*numpy.sqrt(3)+1 ), data.image_slices_extent[1,1]), 0 )
+    #
+    # # Current bottom slice is the minimum between the lowest slice given by the max on the extents
+    # #   and the current bottom slice due to memory limit
+    # currentBottomSlice_image1 = min( max(extents[:,0,1,0]), currentTopSlice_image1 + data.memLimitSlices)
+    # currentBottomSlice_image2 = min( max(extents[:,1,1,0]) + int( data.subpixel_mode[2]*max(data.correlation_window)*numpy.sqrt(3)+1 ), currentTopSlice_image2 + data.memLimitSlices)
+
     # Calculate the highest slice we need
-    currentTopSlice_image1 = min(extents[:,0,0,0])
-    currentTopSlice_image2 = max( min( min(extents[:,1,0,0] ) - int( data.subpixel_mode[2]*max(data.correlation_window)*numpy.sqrt(3)+1 ), data.image_slices_extent[1,1]), 0 )
+    currentTopSlice_image1 = min(kinematics[:,1] - data.correlation_window)
+    # --- Handling im2_lo
+    im2_lo = kinematics[:,1] - data.correlation_window + numpy.array( data.search_window )[:,0] +  kinematics[:,4]
+    currentTopSlice_image2 = max( min( min(im2_lo ) - int( data.subpixel_mode[2]*max(data.correlation_window)*numpy.sqrt(3)+1 ), data.image_slices_extent[1,1]), 0 )
 
     # Current bottom slice is the minimum between the lowest slice given by the max on the extents
     #   and the current bottom slice due to memory limit
-    currentBottomSlice_image1 = min( max(extents[:,0,1,0]), currentTopSlice_image1 + data.memLimitSlices)
-    currentBottomSlice_image2 = min( max(extents[:,1,1,0]) + int( data.subpixel_mode[2]*max(data.correlation_window)*numpy.sqrt(3)+1 ), currentTopSlice_image2 + data.memLimitSlices)
+    currentBottomSlice_image1 = min( max(kinematics[:,1] + data.correlation_window), currentTopSlice_image1 + data.memLimitSlices)
+    # --- Handling im2_hi
+    im2_hi = kinematics[:,1] + data.correlation_window + numpy.array(data.search_window)[:, 1] + kinematics[:, 4]
+    currentBottomSlice_image2 = min( max(im2_hi) + int( data.subpixel_mode[2]*max(data.correlation_window)*numpy.sqrt(3)+1 ), currentTopSlice_image2 + data.memLimitSlices)
+
 
     # Initializing a node done table
     nodeDoneTable = numpy.zeros( ( kinematics.shape[0], 1 ), dtype = bool )
 
-    # Make sure no node data extents are larger than the memory limit in the vertical direction
-    extentsCheck = (extents[:,:,1,0] - extents[:,:,0,0]) > data.memLimitSlices
+    # # Make sure no node data extents are larger than the memory limit in the vertical direction
+    # extentsCheck = (extents[:,:,1,0] - extents[:,:,0,0]) > data.memLimitSlices
+    #
+    # if extentsCheck.any() :
+    #   try: logging.err.error("DIC_setup(): The memory limit set does not fulfil the required vertical extents for at least one node")
+    #   except: print "DIC_setup(): The memory limit set does not fulfil the required vertical extents for at least one node"
+    #   for workerNumber in range( data.nWorkers ):
+    #       q_nodes.put( [ "STOP" ] )
+    #   return
 
-    if extentsCheck.any() :
-      try: logging.err.error("DIC_setup(): The memory limit set does not fulfil the required vertical extents for at least one node")
-      except: print "DIC_setup(): The memory limit set does not fulfil the required vertical extents for at least one node"
-      for workerNumber in range( data.nWorkers ):
-          q_nodes.put( [ "STOP" ] )
-      return
-
-    # If this is the case mark this node as done so it is not processed and give an error
-    #TODO: could conditionally accept these nodes
-    nodeDoneTable[ numpy.logical_or( extentsCheck[:,0], extentsCheck[:,1] ) ] = True
-    kinematics[    numpy.logical_or( extentsCheck[:,0], extentsCheck[:,1] ), 11 ] += 512
+    # # If this is the case mark this node as done so it is not processed and give an error
+    # #TODO: could conditionally accept these nodes
+    # nodeDoneTable[ numpy.logical_or( extentsCheck[:,0], extentsCheck[:,1] ) ] = True
+    # kinematics[    numpy.logical_or( extentsCheck[:,0], extentsCheck[:,1] ), 11 ] += 512
 
     # --- Variables for receive queue management ---
     nNodes_to_correlate = kinematics[ :, 0 ].shape[0] - sum( nodeDoneTable )
@@ -211,7 +231,8 @@ def DIC_setup_lessMemory( kinematics, data, q_data_requests, workerQueues ):
 
         # For every node check if it has been done and if not whether it is inside the current block of data
         for nodeNumber in range( kinematics.shape[0] ):
-            nodeExtent = extents[ nodeNumber ]
+            # nodeExtent = extents[ nodeNumber ]
+            nodeExtent = extent_oneNode(nodeNumber,kinematics,data)
             if not nodeDoneTable[ nodeNumber ]  and nodeExtent[0,0,0] >= currentTopSlice_image1    \
                                                 and nodeExtent[0,1,0] <= currentBottomSlice_image1 \
                                                 and nodeExtent[1,0,0] >= currentTopSlice_image2    \
@@ -231,16 +252,16 @@ def DIC_setup_lessMemory( kinematics, data, q_data_requests, workerQueues ):
             for workerNumber in range( data.nWorkers ):
                 q_nodes.put( [ "STOP" ] )
 
-        # Updating current slices
-        # Calculate the highest slice from NOT done nodes
-        if ( nodeDoneTable == False ).any():
-            currentTopSlice_image1 = min( extents[ numpy.where( nodeDoneTable == False )[0], 0, 0, 0] )
-            currentTopSlice_image2 = max( min( min( extents[ numpy.where( nodeDoneTable == False )[0], 1, 0, 0] - int( data.subpixel_mode[2]*max(data.correlation_window)*numpy.sqrt(3)+1 ) ), data.image_slices_extent[1,1]), 0 )
-
-        # Current bottom slice is the minimum between the lowest slice given by the max on the extents
-        #   and the current bottom slice due to memory limit
-        currentBottomSlice_image1 = min( max(extents[:,0,1,0]), currentTopSlice_image1 + data.memLimitSlices)
-        currentBottomSlice_image2 = min( max(extents[:,1,1,0]) + int( data.subpixel_mode[2]*max(data.correlation_window)*numpy.sqrt(3)+1 ), currentTopSlice_image2 + data.memLimitSlices)
+        # # Updating current slices
+        # # Calculate the highest slice from NOT done nodes
+        # if ( nodeDoneTable == False ).any():
+        #     currentTopSlice_image1 = min( extents[ numpy.where( nodeDoneTable == False )[0], 0, 0, 0] )
+        #     currentTopSlice_image2 = max( min( min( extents[ numpy.where( nodeDoneTable == False )[0], 1, 0, 0] - int( data.subpixel_mode[2]*max(data.correlation_window)*numpy.sqrt(3)+1 ) ), data.image_slices_extent[1,1]), 0 )
+        #
+        # # Current bottom slice is the minimum between the lowest slice given by the max on the extents
+        # #   and the current bottom slice due to memory limit
+        # currentBottomSlice_image1 = min( max(extents[:,0,1,0]), currentTopSlice_image1 + data.memLimitSlices)
+        # currentBottomSlice_image2 = min( max(extents[:,1,1,0]) + int( data.subpixel_mode[2]*max(data.correlation_window)*numpy.sqrt(3)+1 ), currentTopSlice_image2 + data.memLimitSlices)
 
 
         # Loop until all workers have hanged up
