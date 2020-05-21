@@ -93,6 +93,8 @@ import multiprocessing
 from multiprocessing import Pool
 import tqdm
 
+# import ray
+
 
 def read_sub_volume(extent, im1, im2, zExtents_im1_current, zExtents_im2_current, data):
 
@@ -146,6 +148,8 @@ def read_sub_volume(extent, im1, im2, zExtents_im1_current, zExtents_im2_current
     return dataMessage
 
 
+
+# @ray.remote
 def DIC_one_node_map(parameters ):
     nodeNumber = parameters[0]
     extent = parameters[1]
@@ -500,6 +504,10 @@ def DIC_parallel( kinematics, data ):
             # parameters_list.append([nodeNumber,nodeExtent, im1_list[nodeNumber%num_cores], im2_list[nodeNumber%num_cores],zExtents_im1_current, zExtents_im2_current ,data])
 
     results = theadPool.map(DIC_one_node_map, parameters_list)
+    # ray.init()
+    # futures = [DIC_one_node_map.remote(paras) for paras in parameters_list]
+    # results = ray.get(futures)
+
     ### tqdm make the computing very slow
     # results = []
     # for res in tqdm.tqdm(theadPool.imap_unordered(DIC_one_node_map, parameters_list), total=len(parameters_list)):
