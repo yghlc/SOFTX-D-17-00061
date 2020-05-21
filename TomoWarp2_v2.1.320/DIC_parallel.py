@@ -471,10 +471,24 @@ def DIC_parallel( kinematics, data ):
 
 
     # parallel run the image correlation
-    num_cores = multiprocessing.cpu_count()
+    # num_cores = multiprocessing.cpu_count()
+    num_cores = 2
     print('number of thread %d' % num_cores)
     # theadPool = mp.Pool(num_cores)  # multi threads, can not utilize all the CPUs? not sure hlc 2018-4-19
     theadPool = Pool(num_cores)  # multi processes
+
+    # # cost a lot of memory, result in "bad message length" error
+    # im1_list = []
+    # im2_list = []
+    # for idx in range(num_cores):
+    #     if idx == 0:
+    #         im1_list.append(im1)
+    #         im2_list.append(im2)
+    #     else:
+    #         im1_list.append(im1.copy())
+    #         im2_list.append(im2.copy())
+    # print ("Clone im1 and im2 for parallel running, memory usage in bytes, GB, process id", process.memory_info().rss,process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid)
+
     parameters_list = []
     for nodeNumber in range(kinematics.shape[0]):
         nodeExtent = extents[nodeNumber]
@@ -483,8 +497,19 @@ def DIC_parallel( kinematics, data ):
                 and nodeExtent[1, 0, 0] >= currentTopSlice_image2 \
                 and nodeExtent[1, 1, 0] <= currentBottomSlice_image2:
             parameters_list.append([nodeNumber,nodeExtent, im1, im2,zExtents_im1_current, zExtents_im2_current ,data])
+            # parameters_list.append([nodeNumber,nodeExtent, im1_list[nodeNumber%num_cores], im2_list[nodeNumber%num_cores],zExtents_im1_current, zExtents_im2_current ,data])
 
     results = theadPool.map(DIC_one_node_map, parameters_list)
+    ### tqdm make the computing very slow
+    # results = []
+    # for res in tqdm.tqdm(theadPool.imap_unordered(DIC_one_node_map, parameters_list), total=len(parameters_list)):
+    #     # print(_)
+    #     results.append(res)
+    #     pass
+    # also make the computing very slow
+    # for i, res in enumerate(theadPool.imap_unordered(DIC_one_node_map, parameters_list), 1):
+    #     results.append(res)
+    #     sys.stderr.write('\rdone {0:%}'.format(i*1.0 / len(parameters_list)))
 
 
     # #  for test serial (not parallel)
