@@ -173,8 +173,8 @@ def tomowarp_runfile( data ):
 
     if nodesToProcess.shape[0] != 0:
       try:
-        # kinematics[ nodesToProcess,: ] = DIC_setup( kinematics[ nodesToProcess,: ], data, q_data_requests , workerQueues )
-        kinematics[ nodesToProcess,: ] = DIC_parallel( kinematics[ nodesToProcess,: ], data )
+        kinematics[ nodesToProcess,: ] = DIC_setup( kinematics[ nodesToProcess,: ], data, q_data_requests , workerQueues )
+        # kinematics[ nodesToProcess,: ] = DIC_parallel( kinematics[ nodesToProcess,: ], data )
       except Exception as exc:
         raise Exception(exc)
 
