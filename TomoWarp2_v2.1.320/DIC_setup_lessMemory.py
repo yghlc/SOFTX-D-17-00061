@@ -89,13 +89,14 @@ def DIC_setup_lessMemory( kinematics, data, q_data_requests, workerQueues ):
 
     # Wake up the data_delivery_worker with a new "data" array.
     q_data_requests.put( [ "NewData", data ] )
+    logging.log.info("The number of nodes for this subset: %d", kinematics.shape[0])
 
     # --- Define the extent of data we need to ask for ---
     # ----- i.e., generate extents matrix ----------------
     # 2014-10-04 EA and ET: updating extents matrix to a 4D array, with { node number }, { im_number 0,1 }, { top, bottom }, { z, y, x }
     extents = numpy.zeros( ( kinematics.shape[0], 2, 2, 3 ), dtype=numpy.int )    # change int32 to int16, to save memory (the extent would not be too large)
 
-    print ("finished creating extents array for all nodes, memory usage in bytes, GB, process id" ,process.memory_info().rss,process.memory_info().rss/(1024*1024*1024.0), process.pid)
+    logging.log.info ("finished creating extents array for all nodes, memory usage in bytes, GB, process id" ,process.memory_info().rss,process.memory_info().rss/(1024*1024*1024.0), process.pid)
 
     #                     position            correlation_window            top extent of search window     prior displacement
     # --- Handling im1_lo
@@ -118,7 +119,7 @@ def DIC_setup_lessMemory( kinematics, data, q_data_requests, workerQueues ):
     extents[:,:,1,0] = numpy.minimum( extents[:,:,1,0], numpy.ones_like(extents[:,:,1,0]) * data.image_slices_extent[:,1] )
     gc.collect()
 
-    print ("finished extents calculation, memory usage in bytes, GB, process id", process.memory_info().rss,
+    logging.log.info ("finished extents calculation, memory usage in bytes, GB, process id", process.memory_info().rss,
     process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid)
 
     # --- Set Up Queues ---
@@ -128,7 +129,7 @@ def DIC_setup_lessMemory( kinematics, data, q_data_requests, workerQueues ):
     # This queue will contain the results for each node
     q_results       = multiprocessing.Queue( )
 
-    print ("finished Setting Up q_nodes and q_results, memory usage in bytes, GB, process id", process.memory_info().rss,
+    logging.log.info ("finished Setting Up q_nodes and q_results, memory usage in bytes, GB, process id", process.memory_info().rss,
     process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid)
 
     # --- Launch DIC worker nodes  ---
@@ -137,7 +138,7 @@ def DIC_setup_lessMemory( kinematics, data, q_data_requests, workerQueues ):
         p.start()
     # ----------------------------------
 
-    print ("finished Launching DIC worker, memory usage in bytes, GB, process id", process.memory_info().rss,
+    logging.log.info ("finished Launching DIC worker, memory usage in bytes, GB, process id", process.memory_info().rss,
     process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid)
 
     # Calculate the highest slice we need
