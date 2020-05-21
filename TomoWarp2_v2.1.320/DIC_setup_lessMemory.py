@@ -89,7 +89,7 @@ def DIC_setup_lessMemory( kinematics, data, q_data_requests, workerQueues ):
 
     # Wake up the data_delivery_worker with a new "data" array.
     q_data_requests.put( [ "NewData", data ] )
-    logging.log.info("The number of nodes for this subset: %d", kinematics.shape[0])
+    logging.log.info("The number of nodes for this subset: %d"%kinematics.shape[0])
 
     # --- Define the extent of data we need to ask for ---
     # ----- i.e., generate extents matrix ----------------
@@ -119,8 +119,8 @@ def DIC_setup_lessMemory( kinematics, data, q_data_requests, workerQueues ):
     extents[:,:,1,0] = numpy.minimum( extents[:,:,1,0], numpy.ones_like(extents[:,:,1,0]) * data.image_slices_extent[:,1] )
     gc.collect()
 
-    logging.log.info ("finished extents calculation, memory usage in bytes, GB, process id", process.memory_info().rss,
-    process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid)
+    logging.log.info ("finished extents calculation, memory usage in bytes:%d, GB:%lf, process id:%d"%(process.memory_info().rss,
+    process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid))
 
     # --- Set Up Queues ---
     # This queue will contain the nodes for the DIC workers to process
@@ -129,8 +129,8 @@ def DIC_setup_lessMemory( kinematics, data, q_data_requests, workerQueues ):
     # This queue will contain the results for each node
     q_results       = multiprocessing.Queue( )
 
-    logging.log.info ("finished Setting Up q_nodes and q_results, memory usage in bytes, GB, process id", process.memory_info().rss,
-    process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid)
+    logging.log.info ("finished Setting Up q_nodes and q_results, memory usage in bytes: %d, GB:%lf, process id:%d"% (process.memory_info().rss,
+    process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid))
 
     # --- Launch DIC worker nodes  ---
     for workerNumber in range( data.nWorkers ):
@@ -138,8 +138,8 @@ def DIC_setup_lessMemory( kinematics, data, q_data_requests, workerQueues ):
         p.start()
     # ----------------------------------
 
-    logging.log.info ("finished Launching DIC worker, memory usage in bytes, GB, process id", process.memory_info().rss,
-    process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid)
+    logging.log.info ("finished Launching DIC worker, memory usage in bytes: %d, GB:%lf, process id:%d"% (process.memory_info().rss,
+    process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid))
 
     # Calculate the highest slice we need
     currentTopSlice_image1 = min(extents[:,0,0,0])
