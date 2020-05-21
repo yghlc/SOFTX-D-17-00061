@@ -107,6 +107,8 @@ def DIC_setup( kinematics, data, q_data_requests, workerQueues ):
     extents[:,:,0,0] = numpy.maximum( extents[:,:,0,0], numpy.ones_like(extents[:,:,0,0]) * data.image_slices_extent[:,0] )
     extents[:,:,1,0] = numpy.minimum( extents[:,:,1,0], numpy.ones_like(extents[:,:,1,0]) * data.image_slices_extent[:,1] )
 
+    print ("finished extents calculation, memory usage in bytes, GB, process id", process.memory_info().rss,
+    process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid)
 
     # --- Set Up Queues ---
     # This queue will contain the nodes for the DIC workers to process
@@ -115,12 +117,17 @@ def DIC_setup( kinematics, data, q_data_requests, workerQueues ):
     # This queue will contain the results for each node
     q_results       = multiprocessing.Queue( )
 
+    print ("finished Setting Up q_nodes and q_results, memory usage in bytes, GB, process id", process.memory_info().rss,
+    process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid)
 
     # --- Launch DIC worker nodes  ---
     for workerNumber in range( data.nWorkers ):
         p = multiprocessing.Process( target=DIC_worker, args=( workerNumber, q_nodes, q_results, q_data_requests, workerQueues[ workerNumber ], data ) )
         p.start()
     # ----------------------------------
+
+    print ("finished Launching DIC worker, memory usage in bytes, GB, process id", process.memory_info().rss,
+    process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid)
 
     # Calculate the highest slice we need
     currentTopSlice_image1 = min(extents[:,0,0,0])
