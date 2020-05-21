@@ -76,6 +76,7 @@ import psutil
 from psutil import virtual_memory
 process = psutil.Process(os.getpid())
 
+import gc
 # ===========================
 # === Program Starts Here ===
 # ===========================
@@ -95,17 +96,23 @@ def DIC_setup( kinematics, data, q_data_requests, workerQueues ):
     #                     position            correlation_window            top extent of search window     prior displacement
     # --- Handling im1_lo
     extents[:,0,0] = kinematics[:,1:4] - data.correlation_window
+    gc.collect()
     # --- Handling im1_hi
     extents[:,0,1] = kinematics[:,1:4] + data.correlation_window
+    gc.collect()
     # --- Handling im2_lo
     extents[:,1,0] = kinematics[:,1:4] - data.correlation_window + numpy.array( data.search_window )[:,0] +  kinematics[:,4:7]
+    gc.collect()
     # --- Handling im2_hi
     extents[:,1,1] = kinematics[:,1:4] + data.correlation_window + numpy.array( data.search_window )[:,1] +  kinematics[:,4:7]
+    gc.collect()
     # ----------------------------------------------------
 
     # Extents can not exceed the image_slices_extents
     extents[:,:,0,0] = numpy.maximum( extents[:,:,0,0], numpy.ones_like(extents[:,:,0,0]) * data.image_slices_extent[:,0] )
+    gc.collect()
     extents[:,:,1,0] = numpy.minimum( extents[:,:,1,0], numpy.ones_like(extents[:,:,1,0]) * data.image_slices_extent[:,1] )
+    gc.collect()
 
     print ("finished extents calculation, memory usage in bytes, GB, process id", process.memory_info().rss,
     process.memory_info().rss / (1024 * 1024 * 1024.0), process.pid)
