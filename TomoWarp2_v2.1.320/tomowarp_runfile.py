@@ -38,6 +38,7 @@ from tools.tifffile import imsave
 
 from DIC_setup import DIC_setup
 from DIC_parallel import DIC_parallel
+from DIC_setup_lessMemory import DIC_setup_lessMemory
 from data_delivery_worker import data_delivery_worker
 from prior_field.layout_nodes import layout_nodes
 from prior_field.regular_prior_interpolator import regular_prior_interpolator
@@ -171,10 +172,24 @@ def tomowarp_runfile( data ):
     try: logging.log.info( "Nodes To Process = %i"%(nodesToProcess.shape[0]) )
     except: print  "Nodes To Process = %i"%(nodesToProcess.shape[0]) 
 
+    max_nodesToProcess = 10000*10000
     if nodesToProcess.shape[0] != 0:
       try:
-        kinematics[ nodesToProcess,: ] = DIC_setup( kinematics[ nodesToProcess,: ], data, q_data_requests , workerQueues )
+        if nodesToProcess.shape[0] > max_nodesToProcess:
+          # subdivde to several subset to avoid memory error
+          logging.log.info("Divide to multiple subset to avoid memory error")
+          subset_count = nodesToProcess.shape[0] // max_nodesToProcess + 1
+          for idx in range(subset_count):
+            if idx==subset_count-1:
+                sub_nodesToProcess = nodesToProcess[idx*max_nodesToProcess: ]
+            else:
+                sub_nodesToProcess = nodesToProcess[idx*max_nodesToProcess: (idx+1)*max_nodesToProcess]
+            logging.log.info("running on %d th subset, total %d subsets"%(idx+1, subset_count ))
+            kinematics[sub_nodesToProcess, :] = DIC_setup(kinematics[sub_nodesToProcess, :], data, q_data_requests, workerQueues)
+        else:
+          kinematics[ nodesToProcess,: ] = DIC_setup( kinematics[ nodesToProcess,: ], data, q_data_requests , workerQueues )
         # kinematics[ nodesToProcess,: ] = DIC_parallel( kinematics[ nodesToProcess,: ], data )
+        # kinematics[nodesToProcess, :] = DIC_setup_lessMemory(kinematics[nodesToProcess, :], data, q_data_requests, workerQueues)
       except Exception as exc:
         raise Exception(exc)
 

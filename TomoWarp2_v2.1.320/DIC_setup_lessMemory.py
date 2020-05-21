@@ -24,6 +24,10 @@
 
 # Authors: Erika Tudisco, Edward Andò, Stephen Hall, Rémi Cailletaud
 
+# Modified from DIC_setup.py by Lingcao Huang, 21 May 2020
+# In the original DIC_setup, when the node spacing is very small (such as 1), it will have a lot of nodes, and end in run out of memory errors.
+
+
 """ 
 INPUTS:
   - kinematics
@@ -81,7 +85,7 @@ import gc
 # === Program Starts Here ===
 # ===========================
 # @profile
-def DIC_setup( kinematics, data, q_data_requests, workerQueues ):
+def DIC_setup_lessMemory( kinematics, data, q_data_requests, workerQueues ):
 
     # Wake up the data_delivery_worker with a new "data" array.
     q_data_requests.put( [ "NewData", data ] )
@@ -89,7 +93,7 @@ def DIC_setup( kinematics, data, q_data_requests, workerQueues ):
     # --- Define the extent of data we need to ask for ---
     # ----- i.e., generate extents matrix ----------------
     # 2014-10-04 EA and ET: updating extents matrix to a 4D array, with { node number }, { im_number 0,1 }, { top, bottom }, { z, y, x }
-    extents = numpy.zeros( ( kinematics.shape[0], 2, 2, 3 ), dtype=numpy.int16 )    # change int32 to int16, to save memory (the extent would not be too large)
+    extents = numpy.zeros( ( kinematics.shape[0], 2, 2, 3 ), dtype=numpy.int )    # change int32 to int16, to save memory (the extent would not be too large)
 
     print ("finished creating extents array for all nodes, memory usage in bytes, GB, process id" ,process.memory_info().rss,process.memory_info().rss/(1024*1024*1024.0), process.pid)
 
