@@ -73,6 +73,7 @@ def display_time(seconds, granularity=2):
 
 import os
 import psutil
+from psutil import virtual_memory
 process = psutil.Process(os.getpid())
 
 # ===========================
@@ -159,12 +160,31 @@ def DIC_setup( kinematics, data, q_data_requests, workerQueues ):
     prevNodesProcessed = 0
     # ----------------------------------------------------------
 
+    max_nodes_in_quene = 5000
+    mem = virtual_memory()
+    # mem.total  # total physical memory
+    # mem.available # total available memory
+    # each node, need to copy subvolume of image
+    print(data.correlation_window)
+    print(data.search_window)
+    corr_size = [ win*2 +1  for win in data.correlation_window ]
+    print('correlation size',corr_size)
+    subVolume1 = corr_size[0]*corr_size[1]*corr_size[2]*4  # bytes
+    search_size = [ win*2 + 1 + abs(ed[0]) + abs(ed[1]) for win, ed in zip(data.correlation_window,data.search_window) ]
+    subVolume2 = search_size[0]*search_size[1]*search_size[2]*4 # bytes
+    print("search_size",search_size)
+    bytes_for_received_result = kinematics.shape[0]*9*4 # bytes
+    print("available memory (GB), reserved for results: ",mem.available/(1024.0*1024*1024.0),bytes_for_received_result/(1024.0*1024*1024.0))
+    max_nodes_in_quene = (mem.available - bytes_for_received_result)/(subVolume1+subVolume2)
+    print ("max_nodes_in_quene:",max_nodes_in_quene)
+    break_quene_times = 0
 
     #Outside loop continues until there are no nodes left
     while not nodeDoneTable.all():
 
         # --- update NewExtents for the data_delivery_worker for the newly added nodes ---
-        q_data_requests.put( [ "NewExtents", [ [ currentTopSlice_image1, currentBottomSlice_image1 ], [ currentTopSlice_image2, currentBottomSlice_image2 ] ] ] )
+        if break_quene_times == 0:
+            q_data_requests.put( [ "NewExtents", [ [ currentTopSlice_image1, currentBottomSlice_image1 ], [ currentTopSlice_image2, currentBottomSlice_image2 ] ] ] )
         # --------------------------------------------------
 
         # reset node counter -- in order to know when to stop...
@@ -183,6 +203,9 @@ def DIC_setup( kinematics, data, q_data_requests, workerQueues ):
                 nodeDoneTable[ nodeNumber ] = True
                 # Add one to node counter...
                 nodesToProcess += 1
+            if nodesToProcess >  max_nodes_in_quene:
+                break_quene_times = break_quene_times + 1
+                break
 
         # Checking if all nodes have been sent to the worker add STOP to queue to stop the DIC_workers
         if nodeDoneTable.all():
