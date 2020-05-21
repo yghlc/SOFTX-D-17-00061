@@ -172,7 +172,7 @@ def tomowarp_runfile( data ):
     try: logging.log.info( "Nodes To Process = %i"%(nodesToProcess.shape[0]) )
     except: print  "Nodes To Process = %i"%(nodesToProcess.shape[0]) 
 
-    max_nodesToProcess = 10000*10000
+    max_nodesToProcess = 10000*1000
     if nodesToProcess.shape[0] != 0:
       try:
         if nodesToProcess.shape[0] > max_nodesToProcess:
