@@ -151,7 +151,9 @@ def tomowarp_runfile( data ):
             # - a correlation coefficient smaller than a specified value (Default is Inf)
             reprocessCondition = numpy.zeros( ( 2, kinematics.shape[0] ) )
             reprocessCondition[0,:] = numpy.logical_and( kinematics[:,11] >= data.errorLimit[0], kinematics[:,11] <= data.errorLimit[1] )
-            reprocessCondition[1,:] = kinematics[:,10] < data.prior_cc_threshold
+            # reprocessCondition[1,:] = kinematics[:,10] < data.prior_cc_threshold
+            # only repeat the points with small cc and without error (error ==0), this case is where we indeed need to elarge search window
+            reprocessCondition[1,:] = numpy.logical_and( kinematics[:,10] < data.prior_cc_threshold, kinematics[:,11] <= 0.5 )
 
             nodesToProcess = numpy.where( sum( reprocessCondition ) )[0]
 
